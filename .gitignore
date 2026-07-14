@@ -1,0 +1,22 @@
+# --- Python & Virtual Environments ---
+venv/
+env/
+__pycache__/
+*.pyc
+
+# --- Environment Variables & Secrets (CRITICAL) ---
+.env
+backend/.env
+
+# --- Databases ---
+*.db
+backend/study_companion.db
+study_companion.db
+
+# --- User Uploads & Generated PDFs ---
+uploads/
+backend/uploads/
+
+# --- System Files ---
+.DS_Store
+Thumbs.db

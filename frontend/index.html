@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic AI Assistant | BCA Hub</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary: #4e73df; 
+            --secondary: #858796;
+            --success: #1cc88a;
+            --bg: #f8f9fc; 
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --navbar-bg: #4e73df;
+            --border-color: #e3e6f0;
+        }
+
+        /* --- Dark Mode Variables & Overrides --- */
+        [data-theme="dark"] {
+            --bg: #121826;
+            --card-bg: #1f2937;
+            --text-main: #f3f4f6;
+            --primary: #63b3ed;
+            --navbar-bg: #111827;
+            --border-color: #374151;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif; 
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark Mode specific Bootstrap class overrides */
+        [data-theme="dark"] .bg-light { background-color: #374151 !important; color: var(--text-main) !important; }
+        [data-theme="dark"] .text-dark { color: #f3f4f6 !important; }
+        [data-theme="dark"] .text-muted { color: #9ca3af !important; }
+        [data-theme="dark"] .text-secondary { color: #d1d5db !important; }
+        [data-theme="dark"] .border-bottom { border-color: var(--border-color) !important; }
+        [data-theme="dark"] .border { border-color: var(--border-color) !important; }
+        
+        [data-theme="dark"] .form-control { 
+            background-color: #111827; 
+            color: #f3f4f6; 
+            border-color: #4b5563; 
+        }
+        [data-theme="dark"] .form-control::placeholder { color: #6b7280; }
+        [data-theme="dark"] .form-control:focus { background-color: #1f2937; color: #f3f4f6; }
+        
+        [data-theme="dark"] .list-group-item { 
+            background-color: transparent; 
+            color: var(--text-main); 
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] .list-group-item:hover { background-color: rgba(255,255,255,0.05); color: #63b3ed; }
+
+        /* Navigation */
+        .navbar { 
+            background-color: var(--navbar-bg); 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1); 
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle-btn {
+            cursor: pointer; 
+            padding: 6px 15px; 
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.4); 
+            background: rgba(255,255,255,0.1);
+            color: white; 
+            font-size: 0.85rem; 
+            backdrop-filter: blur(5px);
+        }
+
+        /* Cards & Layout */
+        .card { 
+            background-color: var(--card-bg); 
+            border-radius: 15px; 
+            border: none; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            margin-bottom: 25px;
+            color: var(--text-main);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .upload-section { 
+            border: 2px dashed #cbd5e0; 
+            padding: 30px; 
+            border-radius: 15px; 
+            background: rgba(78, 115, 223, 0.03);
+            transition: 0.3s;
+        }
+
+        [data-theme="dark"] .upload-section { border-color: #4b5563; background: rgba(99, 179, 237, 0.05); }
+
+        .upload-section:hover { 
+            border-color: var(--primary); 
+            background: rgba(78, 115, 223, 0.08); 
+        }
+
+        .section-header { 
+            border-bottom: 2px solid var(--primary); 
+            padding-bottom: 8px; 
+            margin: 30px 0 15px 0;
+            color: var(--primary);
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1.2px;
+        }
+
+        /* Components */
+        .answer-box { 
+            border-left: 4px solid var(--success); 
+            background: rgba(28, 200, 138, 0.05);
+            transition: 0.3s;
+        }
+        
+        [data-theme="dark"] .answer-box { background: rgba(28, 200, 138, 0.15); }
+
+        .star-rating { font-size: 28px; cursor: pointer; color: #cbd5e0; }
+        .star-rating .star.active { color: #f6c23e; }
+
+        .btn-primary { 
+            background-color: var(--primary); 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 10px; 
+        }
+
+        .quiz-option-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        }
+
+        /* Overlays */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            z-index: 9999; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="card p-5 shadow-lg border-0" style="width: 420px;">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary">🎓 Student Portal</h2>
+                <p class="text-muted small">BCA Academic Knowledge Hub v2.0</p>
+            </div>
+            <div id="loginAlert" class="alert alert-danger d-none py-2 small">Invalid Enrollment or Key</div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Enrollment ID</label>
+                <input type="text" id="username" class="form-control form-control-lg" placeholder="Enter ID">
+            </div>
+            <div class="mb-4">
+                <label class="form-label small fw-bold">Security Key</label>
+                <input type="password" id="password" class="form-control form-control-lg" placeholder="••••••••">
+            </div>
+            <button onclick="handleLogin()" id="loginBtn" class="btn btn-primary w-100 fw-bold shadow">Unlock Study Resources</button>
+            <div class="mt-4 text-center">
+                <span class="badge bg-light text-muted border">Protected by SHA-256</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar py-3 sticky-top">
+        <div class="container">
+            <span class="navbar-brand mb-0 h4 fw-bold text-white">🎓 AI Study Companion</span>
+            <div class="d-flex align-items-center gap-3">
+                <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeSwitcher">🌙 Dark Mode</button>
+                <span id="userDisplay" class="badge bg-white text-primary d-none"></span>
+                <button onclick="handleLogout()" class="btn btn-sm btn-danger px-3 rounded-pill d-none" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3">📁 Upload Module</h5>
+                    <div class="upload-section">
+                        <input type="file" id="pdfFile" class="form-control mb-3" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                        <input type="text" id="targetTopic" class="form-control mb-3" placeholder="Target Topic (e.g. DBMS)">
+                        <button id="syncBtn" onclick="uploadAndGenerate()" class="btn btn-primary w-100 fw-bold">
+                            <span id="btnText">Generate Study Material</span>
+                        </button>
+                    </div>
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-grow text-primary" role="status"></div>
+                        <p id="spinnerText" class="small text-muted mt-2">AI is processing data...</p>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold mb-3">🕒 Session History</h5>
+                    <div id="historyList" class="list-group list-group-flush rounded" style="max-height: 300px; overflow-y: auto;">
+                        <div class="text-center py-4 text-muted small">No recent sessions found.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div id="placeholder" class="card p-5 text-center border-0 shadow-sm">
+                    <div class="py-5">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2997/2997300.png" width="80" class="mb-4 opacity-50" alt="Placeholder icon">
+                        <h4 class="text-muted">Welcome to your AI Tutor</h4>
+                        <p class="text-secondary">Upload your BCA notes to generate summaries, questions, and quizzes.</p>
+                    </div>
+                </div>
+
+                <div id="resultsArea" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold text-primary mb-0">Analysis Dashboard</h4>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light border btn-sm fw-bold" onclick="window.print()">🖨️ Print</button>
+                            <button class="btn btn-dark btn-sm fw-bold" onclick="downloadPDF()">📥 Save PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 mb-4 border-start border-primary border-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-uppercase mb-0">Study Completion</h6>
+                            <span id="progressText" class="badge bg-primary rounded-pill">0% Completed</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div id="progressBar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                        <div id="scheduleChecklist" class="mt-3 row g-2"></div>
+                    </div>
+
+                    <div id="mainNotesCard">
+                        <div class="card p-4 mb-4">
+                            <h5 class="text-primary fw-bold border-bottom pb-2">📋 Executive Summary</h5>
+                            <p id="summaryText" class="summary-box mt-3 mb-0"></p>
+                        </div>
+
+                        <div class="card p-4">
+                            <h5 class="text-primary fw-bold border-bottom pb-2">📑 Key Concepts</h5>
+                            <div id="notesList" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <div id="practiceCard" class="card p-4 mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="text-success fw-bold mb-0" id="assessmentTitle">❓ Practice Bank</h5>
+                            <div class="btn-group" id="practiceControls">
+                                <button class="btn btn-outline-success btn-sm" onclick="toggleAllAnswers()">Reveal All</button>
+                                <button class="btn btn-primary btn-sm px-3" onclick="startPerformanceQuiz()">🚀 Start Quiz</button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div id="qaSection"></div>
+
+                        <div id="quizModule" class="d-none mt-3 p-4 card border shadow-sm">
+                            <div class="alert alert-warning text-center fw-bold" id="quizLockdownBanner">
+                                ⚠️ LOCKDOWN ACTIVE
+                            </div>
+                            <div id="quizContainer"></div>
+                            
+                            <div id="quizResults" class="mt-4 d-none">
+                                <div class="alert alert-info text-center bg-light border-0">
+                                    <h3 id="scoreText" class="fw-bold mb-0 text-primary">Score: 0/0</h3>
+                                    <p id="performanceLevel" class="mt-2"></p>
+                                </div>
+                                <div id="correctionList"></div>
+                                <button class="btn btn-secondary w-100 mt-3" onclick="closeQuiz()">Back to Study Material</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 feedback-card mt-4 border-0 bg-light">
+                        <h6 class="fw-bold text-success">Did this help your preparation?</h6>
+                        <div class="star-rating my-2" id="starContainer">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <textarea id="feedbackComment" class="form-control form-control-sm mb-3" rows="2" placeholder="Tell us how we can improve accuracy..."></textarea>
+                        <button class="btn btn-success btn-sm fw-bold px-4" onclick="submitFeedback()">Send Feedback</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let currentHistoryId = null;
+        let selectedRating = 0;
+        let quizState = [];
+        let quizTimerId = null;
+
+        // --- Theme & Auth ---
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeSwitcher');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                body.removeAttribute('data-theme');
+                btn.innerText = "🌙 Dark Mode";
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = "☀️ Light Mode";
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            if(!u || !p) return alert("Please enter credentials");
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Authenticating...`;
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('bca_session', data.user);
+                    unlockApp(data.user);
+                } else {
+                    document.getElementById('loginAlert').classList.remove('d-none');
+                    btn.disabled = false;
+                    btn.innerText = "Unlock Study Resources";
+                }
+            } catch (e) {
+                alert("Backend Connection Offline.");
+                btn.disabled = false;
+                btn.innerText = "Unlock Study Resources";
+            }
+        }
+
+        function unlockApp(user) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('userDisplay').innerText = user;
+            document.getElementById('userDisplay').classList.remove('d-none');
+            document.getElementById('logoutBtn').classList.remove('d-none');
+            loadHistory();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('bca_session');
+            window.location.reload();
+        }
+
+        // --- Quiz Logic ---
+        function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+        async function startPerformanceQuiz() {
+            if (!currentHistoryId) return alert("Select a session first!");
+            
+            document.getElementById('mainNotesCard').style.display = 'none';
+            document.getElementById('qaSection').style.display = 'none';
+            document.getElementById('practiceControls').style.display = 'none';
+            
+            const quizModule = document.getElementById('quizModule');
+            const quizContainer = document.getElementById('quizContainer');
+            quizModule.classList.remove('d-none');
+            document.getElementById('quizResults').classList.add('d-none');
+            quizContainer.innerHTML = `<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Randomizing Questions...</p></div>`;
+            quizModule.scrollIntoView({ behavior: 'smooth' });
+
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/quiz/${currentHistoryId}`);
+                if (!res.ok) throw new Error("Could not fetch quiz.");
+                let rawQuiz = await res.json();
+                quizState = shuffle([...rawQuiz]); 
+
+                quizContainer.innerHTML = quizState.map((q, idx) => {
+                    const opts = shuffle([...q.options]);
+                    return `
+                        <div class="card mb-4 border-0 bg-light p-3">
+                            <h6 class="fw-bold mb-3">${idx+1}. ${q.question}</h6>
+                            <div class="row g-2">
+                                ${opts.map(opt => `
+                                    <div class="col-md-6">
+                                        <input type="radio" class="btn-check" name="q${idx}" id="q${idx}_${opt}" value="${opt}">
+                                        <label class="btn btn-outline-primary w-100 text-start small quiz-option-btn" for="q${idx}_${opt}">${opt}</label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }).join('') + `<button class="btn btn-success w-100 fw-bold py-3 mt-3 shadow" onclick="submitQuiz()">Complete Assessment</button>`;
+                
+                startQuizTimer(300);
+            } catch (e) {
+                alert("Quiz generation failed: " + e.message);
+                closeQuiz();
+            }
+        }
+
+        function startQuizTimer(sec) {
+            let left = sec;
+            const banner = document.getElementById('quizLockdownBanner');
+            if(quizTimerId) clearInterval(quizTimerId);
+            quizTimerId = setInterval(() => {
+                left--;
+                let m = Math.floor(left/60);
+                let s = left % 60;
+                banner.innerHTML = `⏱️ TIME REMAINING: ${m}:${s.toString().padStart(2, '0')}`;
+                if(left <= 0) { clearInterval(quizTimerId); submitQuiz(); }
+            }, 1000);
+        }
+
+        function submitQuiz() {
+            if(quizTimerId) clearInterval(quizTimerId);
+            let score = 0;
+            const results = [];
+
+            quizState.forEach((q, idx) => {
+                const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+                const val = selected ? selected.value : "No Answer";
+                const isCorrect = val === q.correct;
+                if(isCorrect) score++;
+                results.push({ q: q.question, c: q.correct, u: val, ok: isCorrect });
+            });
+
+            document.getElementById('quizContainer').innerHTML = "";
+            document.getElementById('quizResults').classList.remove('d-none');
+            document.getElementById('scoreText').innerText = `Your Score: ${score} / ${quizState.length}`;
+            
+            const rank = (score/quizState.length) * 100;
+            document.getElementById('performanceLevel').innerHTML = rank >= 80 
+                ? '<span class="text-success fw-bold">Distinction! You are exam-ready.</span>' 
+                : '<span class="text-warning fw-bold">Good effort. Review the notes again.</span>';
+            
+            document.getElementById('correctionList').innerHTML = results.map(r => `
+                <div class="alert ${r.ok ? 'alert-success' : 'alert-danger'} py-2 px-3 small mb-2 border-0 shadow-sm">
+                    <strong>${r.ok ? '✓' : '✗'}</strong> ${r.q}<br>
+                    <span class="opacity-75">Answer: ${r.c}</span>
+                </div>
+            `).join('');
+        }
+
+        function closeQuiz() {
+            if(quizTimerId) clearInterval(quizTimerId);
+            document.getElementById('quizModule').classList.add('d-none');
+            document.getElementById('mainNotesCard').style.display = 'block';
+            document.getElementById('qaSection').style.display = 'block';
+            document.getElementById('practiceControls').style.display = 'flex';
+        }
+
+        // --- Core Dashboard Rendering ---
+        function renderResults(data) {
+            if (!data) return;
+            
+            // Render Summary safely
+            document.getElementById('summaryText').innerText = data.summary || "Summary generation completed.";
+            
+            // Render Concepts Safely
+            const notesArray = Array.isArray(data.notes) ? data.notes : [];
+            document.getElementById('notesList').innerHTML = notesArray.length > 0 ? notesArray.map(n => `
+                <div class="p-3 border-bottom d-flex align-items-start">
+                    <div class="badge bg-primary text-white me-3 mt-1">●</div>
+                    <div class="small">${n}</div>
+                </div>`).join('') : '<p class="text-muted small">No key concepts could be extracted from this file.</p>';
+            
+            // Render Q&A Safely
+            const marks = [
+                { id: "2_marks", label: "Part A: 2 Marks" },
+                { id: "5_marks", label: "Part B: 5 Marks" },
+                { id: "10_marks", label: "Part C: 10 Marks" }
+            ];
+
+            let html = "";
+            const impQuestions = data.important_questions || {};
+            let hasQuestions = false;
+
+            marks.forEach(m => {
+                const list = impQuestions[m.id] || [];
+                if(list.length > 0) {
+                    hasQuestions = true;
+                    html += `<div class="section-header">${m.label}</div>`;
+                    list.forEach((item, i) => {
+                        const uid = `q_${m.id}_${i}`;
+                        // Fallbacks for q/question and a/answer to handle variable backend output
+                        const questionText = item.q || item.question || "Question missing";
+                        const answerText = item.a || item.answer || "Answer missing";
+                        
+                        // Note: Removed 'text-dark' class so it adapts to dark mode dynamically
+                        html += `
+                        <div class="mb-3">
+                            <p class="fw-bold mb-1 small">${i+1}. ${questionText}</p>
+                            <button class="btn btn-link btn-sm text-decoration-none p-0 text-success fw-bold" onclick="document.getElementById('${uid}').style.display='block'">View Answer</button>
+                            <div id="${uid}" class="answer-box p-3 mt-2 rounded small" style="display:none">
+                                ${answerText}
+                            </div>
+                        </div>`;
+                    });
+                }
+            });
+            
+            document.getElementById('qaSection').innerHTML = hasQuestions ? html : '<p class="text-muted small">No practice questions were generated for this session.</p>';
+
+            // Render Schedule Safely
+            const scheduleArray = Array.isArray(data.schedule) ? data.schedule : [];
+            document.getElementById('scheduleChecklist').innerHTML = scheduleArray.length > 0 ? scheduleArray.map((s, i) => `
+                <div class="col-md-6">
+                    <div class="form-check p-2 bg-light rounded border border-light">
+                        <input class="form-check-input ms-1 me-2 task-cb" type="checkbox" id="task${i}" onchange="updateProgress()">
+                        <label class="form-check-label small" for="task${i}">
+                            <span class="text-primary fw-bold">${s.time || 'N/A'}</span>: ${s.task || 'Study session'}
+                        </label>
+                    </div>
+                </div>`).join('') : '<p class="text-muted small px-3">No study schedule generated.</p>';
+
+            document.getElementById('resultsArea').style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = document.querySelectorAll('.task-cb').length;
+            const done = document.querySelectorAll('.task-cb:checked').length;
+            const p = total > 0 ? Math.round((done/total)*100) : 0;
+            document.getElementById('progressBar').style.width = p + '%';
+            document.getElementById('progressText').innerText = p + '% Completed';
+        }
+
+        // --- Data Handling ---
+        async function uploadAndGenerate() {
+            const files = document.getElementById('pdfFile').files;
+            if(files.length === 0) return alert("Select material first.");
+            
+            const btn = document.getElementById('syncBtn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            const form = new FormData();
+            for(let f of files) form.append('files', f);
+            const topic = document.getElementById('targetTopic').value;
+            if(topic) form.append('target_topic', topic);
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: form });
+                if (!res.ok) throw new Error("Server returned an error");
+                const data = await res.json();
+                
+                // Keep track of active session
+                currentHistoryId = data.id || Date.now(); 
+                
+                // Directly render results with what the server gave us
+                renderResults(data);
+                loadHistory();
+            } catch (e) { 
+                alert("Failed to analyze the document. Check if the server is running."); 
+                console.error("Upload error:", e);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Generate Study Material";
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/history');
+                const data = await res.json();
+                const list = document.getElementById('historyList');
+                list.innerHTML = data.length > 0 
+                    ? data.map(h => `<button onclick="loadSession(${h[0]})" class="list-group-item list-group-item-action small py-2">📄 ${h[1].substring(0, 30)}...</button>`).join('')
+                    : '<p class="text-center p-3 text-muted small">No sessions</p>';
+            } catch (e) { 
+                console.error("History could not be loaded."); 
+            }
+        }
+
+        async function loadSession(id) {
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/history/${id}`);
+                const row = await res.json();
+                const parsed = typeof row[2] === 'string' ? JSON.parse(row[2]) : row[2];
+                currentHistoryId = id;
+                
+                // Merge summary if needed and render
+                renderResults({...parsed, summary: row[1] || parsed.summary});
+            } catch (e) { 
+                alert("Failed to load past session. Data might be corrupted."); 
+            }
+        }
+
+        function toggleAllAnswers() {
+            const boxes = document.querySelectorAll('.answer-box');
+            const show = Array.from(boxes).some(b => b.style.display === 'none');
+            boxes.forEach(b => b.style.display = show ? 'block' : 'none');
+        }
+
+        function downloadPDF() {
+            if(!currentHistoryId) return;
+            window.location.href = `http://127.0.0.1:8000/download/${currentHistoryId}`;
+        }
+
+        async function submitFeedback() {
+            if(selectedRating === 0) return alert("Select a star rating first.");
+            try {
+                await fetch('http://127.0.0.1:8000/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        history_id: currentHistoryId, 
+                        rating: selectedRating, 
+                        comment: document.getElementById('feedbackComment').value 
+                    })
+                });
+                alert("Feedback sent! Thank you.");
+                document.getElementById('feedbackComment').value = '';
+            } catch (e) { alert("Error sending feedback."); }
+        }
+
+        // --- Init Listeners ---
+        document.querySelectorAll('.star').forEach(s => {
+            s.onclick = (e) => {
+                selectedRating = e.target.dataset.value;
+                document.querySelectorAll('.star').forEach(star => star.classList.toggle('active', star.dataset.value <= selectedRating));
+            }
+        });
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') {
+                handleLogin();
+            }
+        });
+
+        window.onload = () => {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('themeSwitcher').innerText = "☀️ Light Mode";
+            }
+            const session = localStorage.getItem('bca_session');
+            if (session) unlockApp(session);
+        };
+    </script>
+</body>
+</html>
