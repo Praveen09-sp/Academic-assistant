@@ -331,7 +331,7 @@
             btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Authenticating...`;
 
             try {
-                const res = await fetch('https://academic-assistant-413c.onrender.com/analyze', {
+                const res = await fetch('https://academic-assistant-413c.onrender.com/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: u, password: p })
@@ -339,8 +339,9 @@
 
                 if (res.ok) {
                     const data = await res.json();
-                    localStorage.setItem('bca_session', data.user);
-                    unlockApp(data.user);
+                    const loggedInUser = data.user || u;
+                    localStorage.setItem('bca_session', loggedInUser);
+                    unlockApp(loggedInUser);
                 } else {
                     document.getElementById('loginAlert').classList.remove('d-none');
                     btn.disabled = false;
@@ -384,7 +385,7 @@
             quizModule.scrollIntoView({ behavior: 'smooth' });
 
             try {
-                const res = await fetch(`http://127.0.0.1:8000/quiz/${currentHistoryId}`);
+                const res = await fetch(`https://academic-assistant-413c.onrender.com/quiz/${currentHistoryId}`);
                 if (!res.ok) throw new Error("Could not fetch quiz.");
                 let rawQuiz = await res.json();
                 quizState = shuffle([...rawQuiz]); 
@@ -496,11 +497,9 @@
                     html += `<div class="section-header">${m.label}</div>`;
                     list.forEach((item, i) => {
                         const uid = `q_${m.id}_${i}`;
-                        // Fallbacks for q/question and a/answer to handle variable backend output
                         const questionText = item.q || item.question || "Question missing";
                         const answerText = item.a || item.answer || "Answer missing";
                         
-                        // Note: Removed 'text-dark' class so it adapts to dark mode dynamically
                         html += `
                         <div class="mb-3">
                             <p class="fw-bold mb-1 small">${i+1}. ${questionText}</p>
@@ -556,14 +555,12 @@
             if(topic) form.append('target_topic', topic);
 
             try {
-                const res = await fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: form });
+                const res = await fetch('https://academic-assistant-413c.onrender.com/analgze', { method: 'POST', body: form });
                 if (!res.ok) throw new Error("Server returned an error");
                 const data = await res.json();
                 
-                // Keep track of active session
                 currentHistoryId = data.id || Date.now(); 
                 
-                // Directly render results with what the server gave us
                 renderResults(data);
                 loadHistory();
             } catch (e) { 
@@ -578,7 +575,7 @@
 
         async function loadHistory() {
             try {
-                const res = await fetch('http://127.0.0.1:8000/history');
+                const res = await fetch('https://academic-assistant-413c.onrender.com/history');
                 const data = await res.json();
                 const list = document.getElementById('historyList');
                 list.innerHTML = data.length > 0 
@@ -591,12 +588,11 @@
 
         async function loadSession(id) {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/history/${id}`);
+                const res = await fetch(`https://academic-assistant-413c.onrender.com/history/${id}`);
                 const row = await res.json();
                 const parsed = typeof row[2] === 'string' ? JSON.parse(row[2]) : row[2];
                 currentHistoryId = id;
                 
-                // Merge summary if needed and render
                 renderResults({...parsed, summary: row[1] || parsed.summary});
             } catch (e) { 
                 alert("Failed to load past session. Data might be corrupted."); 
@@ -611,13 +607,13 @@
 
         function downloadPDF() {
             if(!currentHistoryId) return;
-            window.location.href = `http://127.0.0.1:8000/download/${currentHistoryId}`;
+            window.location.href = `https://academic-assistant-413c.onrender.com/download/${currentHistoryId}`;
         }
 
         async function submitFeedback() {
             if(selectedRating === 0) return alert("Select a star rating first.");
             try {
-                await fetch('http://127.0.0.1:8000/feedback', {
+                await fetch('https://academic-assistant-413c.onrender.com/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -645,13 +641,33 @@
             }
         });
 
-        window.onload = () => {
+        window.onload = async () => {
+            // Apply theme configuration
             if (localStorage.getItem('theme') === 'dark') {
                 document.body.setAttribute('data-theme', 'dark');
                 document.getElementById('themeSwitcher').innerText = "☀️ Light Mode";
             }
+            
+            // Check session and verify with live backend
             const session = localStorage.getItem('bca_session');
-            if (session) unlockApp(session);
+            if (session) {
+                try {
+                    const verifyRes = await fetch('https://academic-assistant-413c.onrender.com/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: session })
+                    });
+                    
+                    if (verifyRes.ok) {
+                        unlockApp(session);
+                    } else {
+                        localStorage.removeItem('bca_session');
+                    }
+                } catch (e) {
+                    // Fallback to active state if client-side verification has network issues
+                    unlockApp(session);
+                }
+            }
         };
     </script>
 </body>

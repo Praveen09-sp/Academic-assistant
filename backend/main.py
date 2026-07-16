@@ -13,10 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 # ... after app = FastAPI() ...
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return {"status": "Server is running"}
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For your BCA demo, "*" allows all. 
@@ -25,6 +21,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"status": "Server is running"}
+
+# 3. Login Endpoint
+@app.post("/login")
+async def login(data: dict):
+    # Your login verification logic here (checking enrollment ID and key)
+    username = data.get("enrollmentId")
+    password = data.get("securityKey")
+    # Example check:
+    if username == "admin" and password == "your_password":
+        return {"status": "success", "message": "Access granted"}
+    return {"status": "error", "message": "Invalid credentials"}
+
+# 4. Verify Endpoint (For an extra layer of safety)
+@app.post("/verify")
+async def verify(data: dict):
+    # Your token or session verification logic here
+    return {"status": "verified"}
+
+# 5. Analyze Endpoint (Note: use "analyze" to avoid spelling typos!)
+@app.post("/analyze")
+async def analyze_document(file: UploadFile = File(...)):
+    # Your PDF processing & AI logic here
+    try:
+        # Read file, extract text, call Groq/Gemini API...
+        return {"status": "success", "summary": "AI generated summary here..."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    
 # --- PDF GENERATION IMPORTS ---
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
