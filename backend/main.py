@@ -13,6 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 # ... after app = FastAPI() ...
 app = FastAPI()
 
+@app.get("/")
+async def root():
+    return {"status": "Server is running"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For your BCA demo, "*" allows all. 
