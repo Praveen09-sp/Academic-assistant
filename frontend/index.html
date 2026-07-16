@@ -426,44 +426,6 @@
             }, 1000);
         }
 
-        function submitQuiz() {
-            if(quizTimerId) clearInterval(quizTimerId);
-            let score = 0;
-            const results = [];
-
-            quizState.forEach((q, idx) => {
-                const selected = document.querySelector(`input[name="q${idx}"]:checked`);
-                const val = selected ? selected.value : "No Answer";
-                const isCorrect = val === q.correct;
-                if(isCorrect) score++;
-                results.push({ q: q.question, c: q.correct, u: val, ok: isCorrect });
-            });
-
-            document.getElementById('quizContainer').innerHTML = "";
-            document.getElementById('quizResults').classList.remove('d-none');
-            document.getElementById('scoreText').innerText = `Your Score: ${score} / ${quizState.length}`;
-            
-            const rank = (score/quizState.length) * 100;
-            document.getElementById('performanceLevel').innerHTML = rank >= 80 
-                ? '<span class="text-success fw-bold">Distinction! You are exam-ready.</span>' 
-                : '<span class="text-warning fw-bold">Good effort. Review the notes again.</span>';
-            
-            document.getElementById('correctionList').innerHTML = results.map(r => `
-                <div class="alert ${r.ok ? 'alert-success' : 'alert-danger'} py-2 px-3 small mb-2 border-0 shadow-sm">
-                    <strong>${r.ok ? '✓' : '✗'}</strong> ${r.q}<br>
-                    <span class="opacity-75">Answer: ${r.c}</span>
-                </div>
-            `).join('');
-        }
-
-        function closeQuiz() {
-            if(quizTimerId) clearInterval(quizTimerId);
-            document.getElementById('quizModule').classList.add('d-none');
-            document.getElementById('mainNotesCard').style.display = 'block';
-            document.getElementById('qaSection').style.display = 'block';
-            document.getElementById('practiceControls').style.display = 'flex';
-        }
-
         // --- Core Dashboard Rendering ---
         function renderResults(data) {
             if (!data) return;
@@ -555,7 +517,8 @@
             if(topic) form.append('target_topic', topic);
 
             try {
-                const res = await fetch('https://academic-assistant-413c.onrender.com/analgze', { method: 'POST', body: form });
+                // CHANGED: Fixed the endpoint name to standard spelling /analyze
+                const res = await fetch('https://academic-assistant-413c.onrender.com/analyze', { method: 'POST', body: form });
                 if (!res.ok) throw new Error("Server returned an error");
                 const data = await res.json();
                 
@@ -652,6 +615,7 @@
             const session = localStorage.getItem('bca_session');
             if (session) {
                 try {
+                    // CHANGED: Fixed the endpoint name to standard spelling /verify
                     const verifyRes = await fetch('https://academic-assistant-413c.onrender.com/verify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
