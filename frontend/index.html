@@ -517,8 +517,8 @@
             if(topic) form.append('target_topic', topic);
 
             try {
-                // CHANGED: Fixed the endpoint name to standard spelling /analyze
-                const res = await fetch('https://academic-assistant-413c.onrender.com/analyze', { method: 'POST', body: form });
+                // CHANGED: Fixed the endpoint name to standard spelling /upload
+                const res = await fetch('https://academic-assistant-413c.onrender.com/upload', { method: 'POST', body: form });
                 if (!res.ok) throw new Error("Server returned an error");
                 const data = await res.json();
                 
