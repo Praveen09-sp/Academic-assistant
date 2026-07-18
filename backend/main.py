@@ -1,3 +1,4 @@
+from ast import Add
 import json
 import os
 import shutil
@@ -15,7 +16,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For your BCA demo, "*" allows all. 
+    allow_origins=["https://praveen09-sp.github.io", # Keep your old one just in case
+        "https://academic-assistant-ai.vercel.app"] Add your exact new Vercel link here!,   
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
