@@ -16,8 +16,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://praveen09-sp.github.io", # Keep your old one just in case
-        "https://academic-assistant-ai.vercel.app"] Add your exact new Vercel link here!,   
+    allow_origins=[
+        "https://praveen09-sp.github.io", 
+        "https://academic-assistant-one.vercel.app" # <-- Add your new Vercel link here!
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
