@@ -153,7 +153,7 @@
 <body>
 
     <div id="loginOverlay">
-        <div class="card p-5 shadow-lg border-0" style="width: 420px;">
+        <div class="card p-5 shadow-lg border-0" style="width: 420px; max-width: 420px;">
             <div class="text-center mb-4">
                 <h2 class="fw-bold text-primary">🎓 Student Portal</h2>
                 <p class="text-muted small">BCA Academic Knowledge Hub v2.0</p>
@@ -222,7 +222,10 @@
 
                 <div id="resultsArea" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
                         <h4 class="fw-bold text-primary mb-0">Analysis Dashboard</h4>
+                        <span id="topicDirectionBadge" class="badge bg-info text-dark mt-2 d-none" style="font-size: 0.85rem;"></span>
+                        </div>
                         <div class="d-flex gap-2">
                             <button class="btn btn-light border btn-sm fw-bold" onclick="window.print()">🖨️ Print</button>
                             <button class="btn btn-dark btn-sm fw-bold" onclick="downloadPDF()">📥 Save PDF</button>
@@ -429,18 +432,35 @@
         // --- Core Dashboard Rendering ---
         function renderResults(data) {
             if (!data) return;
-            
-            // Render Summary safely
-            document.getElementById('summaryText').innerText = data.summary || "Summary generation completed.";
-            
-            // Render Concepts Safely
-            const notesArray = Array.isArray(data.notes) ? data.notes : [];
-            document.getElementById('notesList').innerHTML = notesArray.length > 0 ? notesArray.map(n => `
-                <div class="p-3 border-bottom d-flex align-items-start">
+
+            // --- NEW CODE: Display the Target Topic Direction ---
+            const topicInputElement = document.getElementById('targetTopic');
+            const userTopic = topicInputElement ? topicInputElement.value : "";
+            const topicBadge = document.getElementById('topicDirectionBadge');
+    
+            if (topicBadge) {
+                const finalTopic = userTopic || data.target_topic;
+                if (finalTopic) {
+                   topicBadge.innerText = `🎯 Study Direction: ${finalTopic}`;
+                   topicBadge.classList.remove('d-none');
+                } else {
+                   topicBadge.classList.add('d-none');
+                }
+            }
+           // ----------------------------------------------------
+    
+           // Render Summary safely
+           document.getElementById('summaryText').innerText = data.summary || "Summary generation completed.";
+    
+           // Render Concepts Safely
+           const notesArray = Array.isArray(data.notes) ? data.notes : [];
+           document.getElementById('notesList').innerHTML = notesArray.length > 0 ? notesArray.map(n => `
+               <div class="p-3 border-bottom d-flex align-items-start">
                     <div class="badge bg-primary text-white me-3 mt-1">●</div>
                     <div class="small">${n}</div>
                 </div>`).join('') : '<p class="text-muted small">No key concepts could be extracted from this file.</p>';
-            
+    
+    
             // Render Q&A Safely
             const marks = [
                 { id: "2_marks", label: "Part A: 2 Marks" },
@@ -453,44 +473,96 @@
             let hasQuestions = false;
 
             marks.forEach(m => {
-                const list = impQuestions[m.id] || [];
-                if(list.length > 0) {
-                    hasQuestions = true;
-                    html += `<div class="section-header">${m.label}</div>`;
-                    list.forEach((item, i) => {
-                        const uid = `q_${m.id}_${i}`;
-                        const questionText = item.q || item.question || "Question missing";
-                        const answerText = item.a || item.answer || "Answer missing";
-                        
-                        html += `
-                        <div class="mb-3">
-                            <p class="fw-bold mb-1 small">${i+1}. ${questionText}</p>
-                            <button class="btn btn-link btn-sm text-decoration-none p-0 text-success fw-bold" onclick="document.getElementById('${uid}').style.display='block'">View Answer</button>
-                            <div id="${uid}" class="answer-box p-3 mt-2 rounded small" style="display:none">
-                                ${answerText}
-                            </div>
-                        </div>`;
-                    });
+            const list = impQuestions[m.id] || [];
+            if(list.length > 0) {
+               hasQuestions = true;
+                html += `<div class="section-header">${m.label}</div>`;
+                list.forEach((item, i) => {
+                    const uid = `q_${m.id}_${i}`;
+                    const questionText = item.q || item.question || "Question missing";
+                    const answerText = item.a || item.answer || "Answer missing";
+                
+                    html += `
+                    <div class="mb-3">
+                        <p class="fw-bold mb-1 small">${i+1}. ${questionText}</p>
+                        <button class="btn btn-link btn-sm text-decoration-none p-0 text-success fw-bold" onclick="document.getElementById('${uid}').style.display='block'">View Answer</button>
+                        <div id="${uid}" class="answer-box p-3 mt-2 rounded small" style="display:none">
+                            ${answerText}
+                        </div>
+                    </div>`;
+                });
+            }
+        });
+    
+        document.getElementById('qaSection').innerHTML = hasQuestions ? html : '<p class="text-muted small">No practice questions were generated for this session.</p>';
+
+        // Render Schedule Safely
+        const scheduleArray = Array.isArray(data.schedule) ? data.schedule : [];
+        document.getElementById('scheduleChecklist').innerHTML = scheduleArray.length > 0 ? scheduleArray.map((s, i) => `
+            <div class="col-md-6">
+                <div class="form-check p-2 bg-light rounded border border-light">
+                    <input class="form-check-input ms-1 me-2 task-cb" type="checkbox" id="task${i}" onchange="updateProgress()">
+                    <label class="form-check-label small" for="task${i}">
+                       <span class="text-primary fw-bold">${s.time || 'N/A'}</span>: ${s.task || 'Study session'}
+                    </label>
+                </div>
+            </div>`).join('') : '<p class="text-muted small px-3">No study schedule generated.</p>';
+
+        document.getElementById('resultsArea').style.display = 'block';
+        document.getElementById('placeholder').style.display = 'none';
+        updateProgress();
+    }
+
+        function submitQuiz() {
+            // 1. Stop the timer
+            if (quizTimerId) clearInterval(quizTimerId);
+
+            let score = 0;
+            let correctionsHTML = "";
+
+            // 2. Loop through questions to check answers
+            quizState.forEach((q, idx) => {
+                // Find which radio button the user selected
+                const selectedOption = document.querySelector(`input[name="q${idx}"]:checked`);
+                const userAnswer = selectedOption ? selectedOption.value : null;
+                
+                // Fetch the correct answer from the AI's data
+                const correctAnswer = q.answer || q.correct_answer || q.correct;
+
+                // 3. Grade it
+                if (userAnswer === correctAnswer) {
+                    score++;
+                } else {
+                    correctionsHTML += `
+                        <div class="alert alert-danger mt-3 mb-0 text-start small">
+                            <strong class="text-dark">Question:</strong> ${q.question}<br>
+                            <strong class="text-dark">Your Answer:</strong> <span class="text-decoration-line-through">${userAnswer || "Skipped"}</span><br>
+                            <strong class="text-success">Correct Answer:</strong> ${correctAnswer}
+                        </div>
+                    `;
                 }
             });
+
+            // 4. Update the UI to show results
+            document.getElementById('quizContainer').innerHTML = ""; // Clear the questions
+            document.getElementById('quizLockdownBanner').style.display = 'none';
+            document.getElementById('quizResults').classList.remove('d-none');
             
-            document.getElementById('qaSection').innerHTML = hasQuestions ? html : '<p class="text-muted small">No practice questions were generated for this session.</p>';
+            document.getElementById('scoreText').innerText = `Score: ${score} / ${quizState.length}`;
+            document.getElementById('performanceLevel').innerText = (score / quizState.length >= 0.7) 
+                ? "🎯 Great job! You have a solid grasp on this topic." 
+                : "📚 Review the study materials and try again!";
+                
+            document.getElementById('correctionList').innerHTML = correctionsHTML;
+        }
 
-            // Render Schedule Safely
-            const scheduleArray = Array.isArray(data.schedule) ? data.schedule : [];
-            document.getElementById('scheduleChecklist').innerHTML = scheduleArray.length > 0 ? scheduleArray.map((s, i) => `
-                <div class="col-md-6">
-                    <div class="form-check p-2 bg-light rounded border border-light">
-                        <input class="form-check-input ms-1 me-2 task-cb" type="checkbox" id="task${i}" onchange="updateProgress()">
-                        <label class="form-check-label small" for="task${i}">
-                            <span class="text-primary fw-bold">${s.time || 'N/A'}</span>: ${s.task || 'Study session'}
-                        </label>
-                    </div>
-                </div>`).join('') : '<p class="text-muted small px-3">No study schedule generated.</p>';
-
-            document.getElementById('resultsArea').style.display = 'block';
-            document.getElementById('placeholder').style.display = 'none';
-            updateProgress();
+        function closeQuiz() {
+            // Reset the UI to go back to the study material
+            document.getElementById('quizModule').classList.add('d-none');
+            document.getElementById('mainNotesCard').style.display = 'block';
+            document.getElementById('qaSection').style.display = 'block';
+            document.getElementById('practiceControls').style.display = 'block';
+            document.getElementById('quizResults').classList.add('d-none');
         }
 
         function updateProgress() {
