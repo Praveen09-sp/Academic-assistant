@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic Quizzes | AI Study Companion</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+        min-height: 100vh;
+      }
+        /* General Body */
+        body { transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
+        .dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+
+        /* Cards and Text Inside Cards (Fixes Bugs 2 & 3) */
+        .dark-mode .card { background-color: #1e1e1e !important; border-color: #333 !important; }
+        .dark-mode .card-body,
+        .dark-mode .form-label, 
+        .dark-mode .card-title { color: #e0e0e0 !important; }
+        
+        /* Sidebar Menu Fixes (Fixes Bug 1) */
+        .dark-mode .offcanvas { background-color: #1e1e1e !important; border-right: 1px solid #333; }
+        .dark-mode .offcanvas-header.bg-light,
+        .dark-mode .mt-auto.bg-light { background-color: #1e1e1e !important; border-color: #333 !important; }
+        .dark-mode .offcanvas-title { color: #fff !important; }
+        .dark-mode .list-group-item:not(.bg-primary) { background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #333 !important; }
+        .dark-mode .list-group-item:not(.bg-primary):hover { background-color: #2a2a2a !important; color: #fff !important; }
+        .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); } /* Makes the 'X' button white */
+
+        /* Inputs & Selects */
+        .dark-mode .form-control, 
+        .dark-mode .form-select { background-color: #2a2a2a !important; color: #fff !important; border-color: #444 !important; }
+        .dark-mode .form-control::placeholder { color: #888 !important; }
+        .dark-mode .text-muted { color: #adb5bd !important; }
+    </style>
+  </head>
+  <body class="bg-light">
+    <!-- ========================================== -->
+    <!-- 1. NAVBAR                                  -->
+    <!-- ========================================== -->
+    <nav class="navbar py-3 sticky-top bg-primary shadow-sm">
+      <div class="container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <button
+            class="btn shadow-none p-0 me-3 text-white fs-4 border-0"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#sidebarMenu"
+            aria-controls="sidebarMenu"
+          >
+            ☰
+          </button>
+          <span class="navbar-brand mb-0 h4 fw-bold text-white"
+            >🎓 AI Study Companion</span
+          >
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <button
+            class="btn btn-outline-light btn-sm fw-bold"
+            onclick="toggleTheme()"
+            id="themeSwitcher"
+          >
+            🌙 Dark Mode
+          </button>
+          <span
+            id="userDisplay"
+            class="badge bg-white text-primary d-none"
+          ></span>
+          <button
+            onclick="handleLogout()"
+            class="btn btn-sm btn-danger px-3 rounded-pill d-none"
+            id="logoutBtn"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- 2. THE SLIDING SIDEBAR (OFFCANVAS)         -->
+    <!-- ========================================== -->
+    <div
+      class="offcanvas offcanvas-start shadow"
+      tabindex="-1"
+      id="sidebarMenu"
+      aria-labelledby="sidebarMenuLabel"
+    >
+      <div class="offcanvas-header bg-light border-bottom">
+        <h5 class="offcanvas-title fw-bold text-primary" id="sidebarMenuLabel">
+          Menu
+        </h5>
+        <button
+          type="button"
+          class="btn-close shadow-none"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+
+      <div class="offcanvas-body d-flex flex-column p-0">
+        <div class="list-group list-group-flush mt-2">
+          <a
+            href="index.html"
+            class="list-group-item list-group-item-action py-3 text-muted"
+          >
+            🏠 AI Upload & Analyze
+          </a>
+
+          <a
+            href="database.html"
+            class="list-group-item list-group-item-action py-3 text-muted"
+          >
+            📚 Database & PYQs
+          </a>
+
+          <a
+            href="quiz.html"
+            class="list-group-item list-group-item-action bg-primary text-white fw-bold py-3"
+          >
+            ✍️ Dynamic Quizzes (Active)
+          </a>
+
+          <a
+            href="search.html"
+            class="list-group-item list-group-item-action py-3 text-muted"
+          >
+            🔍 University Search
+          </a>
+        </div>
+
+        <div class="mt-auto p-3 border-top bg-light">
+          <p class="small text-muted mb-0">Version 2.0 In Progress 🚀</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. QUIZ MAIN CONTENT                       -->
+    <!-- ========================================== -->
+    <div class="container mt-4 mb-5">
+      <h2 class="fw-bold text-primary mb-4">✍️ Dynamic Quizzes</h2>
+
+      <!-- Quiz Configuration Card -->
+      <div
+        class="card shadow-sm border-0 mb-4 border-top border-4 border-primary"
+        id="quizConfigCard"
+      >
+        <div class="card-body">
+          <h5 class="card-title fw-bold mb-3">Configure Your Test</h5>
+
+          <div class="row g-3">
+            <!-- Course Dropdown -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Course</label>
+              <select id="courseSelect" class="form-select shadow-none">
+                <option value="BCA">BCA</option>
+                <option value="BSc">BSc</option>
+                <option value="BCom">BCom</option>
+              </select>
+            </div>
+
+            <!-- Semester Dropdown -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Semester</label>
+              <select id="semesterSelect" class="form-select shadow-none">
+                <option value="1st Sem">1st Semester</option>
+                <option value="2nd Sem">2nd Semester</option>
+                <option value="3rd Sem">3rd Semester</option>
+                <option value="4th Sem">4th Semester</option>
+                <option value="5th Sem">5th Semester</option>
+                <option value="6th Sem">6th Semester</option>
+              </select>
+            </div>
+
+            <!-- Subject Dropdown -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Select Subject</label>
+              <select id="subjectSelect" class="form-select shadow-none">
+                <option value="DBMS">Database Management (DBMS)</option>
+                <option value="OS">Operating Systems</option>
+                <option value="DS">Data Structures</option>
+                <option value="Java">Java Programming</option>
+              </select>
+            </div>
+
+            <!-- Difficulty Dropdown -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold">Difficulty</label>
+              <select id="difficultySelect" class="form-select shadow-none">
+                <option value="Easy">Easy</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="col-12 mt-4 text-end">
+              <button
+                onclick="startQuiz()"
+                class="btn btn-primary fw-bold px-4 py-2 shadow-none"
+              >
+                🚀 Generate Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Interface (Hidden until generated) -->
+      <div id="quizInterface" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h4 class="fw-bold m-0" id="quizTitle">Subject Quiz</h4>
+            <small class="text-muted" id="quizSubtitle"
+              >Course & Semester</small
+            >
+          </div>
+          <span class="badge bg-primary fs-6"
+            >Time: <span id="timer">10:00</span></span
+          >
+        </div>
+
+        <!-- Placeholder for dynamic questions -->
+        <div id="questionsContainer">
+          <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3">1. What does SQL stand for?</h5>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input shadow-none"
+                  type="radio"
+                  name="q1"
+                  id="q1a"
+                />
+                <label class="form-check-label" for="q1a"
+                  >Structured Query Language</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input shadow-none"
+                  type="radio"
+                  name="q1"
+                  id="q1b"
+                />
+                <label class="form-check-label" for="q1b"
+                  >Strong Question Language</label
+                >
+              </div>
+              <div class="form-check mb-2">
+                <input
+                  class="form-check-input shadow-none"
+                  type="radio"
+                  name="q1"
+                  id="q1c"
+                />
+                <label class="form-check-label" for="q1c"
+                  >Standard Query Logic</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onclick="submitQuiz()"
+          class="btn btn-success fw-bold w-100 mt-3 p-3 shadow-sm"
+        >
+          ✅ Submit Answers
+        </button>
+      </div>
+
+      <!-- Quiz Results (Hidden initially) -->
+      <div id="quizResults" class="d-none text-center py-5">
+        <h1 class="display-1">🎯</h1>
+        <h2 class="fw-bold text-success mb-3">Quiz Completed!</h2>
+        <h4 class="text-muted mb-4">
+          Your Score:
+          <span id="scoreDisplay" class="fw-bold text-dark">0/0</span>
+        </h4>
+        <button
+          onclick="location.reload()"
+          class="btn btn-outline-primary fw-bold"
+        >
+          Try Another Quiz
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. SCRIPTS                                 -->
+    <!-- ========================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+        const btn = document.getElementById("themeSwitcher");
+        if (document.body.classList.contains("dark-mode")) {
+          btn.innerText = "☀️ Light Mode";
+          btn.classList.replace("btn-outline-light", "btn-light");
+          btn.classList.replace("text-white", "text-dark");
+        } else {
+          btn.innerText = "🌙 Dark Mode";
+          btn.classList.replace("btn-light", "btn-outline-light");
+          btn.classList.replace("text-dark", "text-white");
+        }
+      }
+
+      function startQuiz() {
+        const course = document.getElementById("courseSelect").value;
+        const semester = document.getElementById("semesterSelect").value;
+        const subject = document.getElementById("subjectSelect");
+        const difficulty = document.getElementById("difficultySelect").value;
+
+        // Hide config, show quiz
+        document.getElementById("quizConfigCard").classList.add("d-none");
+        document.getElementById("quizInterface").classList.remove("d-none");
+
+        // Update titles with Course & Semester information
+        document.getElementById("quizTitle").innerText =
+          `${subject.options[subject.selectedIndex].text} (${difficulty})`;
+        document.getElementById("quizSubtitle").innerText =
+          `${course} • ${semester}`;
+
+        // Start fake timer (Will be replaced when backend is connected)
+        let timeLeft = 600;
+        setInterval(() => {
+          if (timeLeft <= 0) return;
+          timeLeft--;
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          document.getElementById("timer").innerText =
+            `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+        }, 1000);
+      }
+
+      function submitQuiz() {
+        document.getElementById("quizInterface").classList.add("d-none");
+        document.getElementById("quizResults").classList.remove("d-none");
+        document.getElementById("scoreDisplay").innerText = "4 / 5";
+      }
+    </script>
+  </body>
+</html>

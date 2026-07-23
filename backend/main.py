@@ -7,9 +7,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.params import Depends
 from fastapi.responses import FileResponse 
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+import database, models  # <--- ADD THIS
 
 # ... after app = FastAPI() ...
 app = FastAPI()
@@ -24,6 +27,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+models.Base.metadata.create_all(bind=database.engine)
+
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.get("/")
 async def root():
@@ -185,6 +197,42 @@ async def get_quiz(history_id: int):
     # record[2] is the 'content' column containing the JSON string
     data = json.loads(record[2]) if isinstance(record[2], str) else record[2]
     return data.get("secure_quiz", [])
+
+@app.get("/materials/{course}/{semester}")
+def fetch_materials(course: str, semester: str, db: Session = Depends(get_db)):
+    results = db.query(models.Material).filter(
+        models.Material.course == course,
+        models.Material.semester == semester
+    ).all()
+    
+    return {"materials": results}
+
+@app.post("/materials")
+def add_material(
+    course: str,
+    semester: str,
+    subject: str,
+    material_type: str,
+    title: str,
+    file_url: str,
+    db: Session = Depends(get_db)
+):
+    # Create new material record
+    new_material = models.Material(
+        course=course,
+        semester=semester,
+        subject=subject,
+        material_type=material_type,
+        title=title,
+        file_url=file_url
+    )
+    
+    # Save to SQLite
+    db.add(new_material)
+    db.commit()
+    db.refresh(new_material)
+    
+    return {"status": "success", "data": new_material}
 
 @app.get("/download/{history_id}")
 async def download_pdf(history_id: int):

@@ -1,5 +1,21 @@
 import sqlite3
 import json
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# 1. Name of the SQL database file that will be created automatically
+SQLALCHEMY_DATABASE_URL = "sqlite:///./academic.db"
+
+# 2. Create the SQL engine
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
+# 3. Create a SessionLocal class for handling database requests
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# 4. Base class that our database tables will inherit from
+Base = declarative_base()
 
 # Ensure this matches the DB name used in your main.py
 DB_NAME = "study_companion.db" 

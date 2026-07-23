@@ -47,7 +47,7 @@
 
       /* Dark Mode specific Bootstrap class overrides */
       [data-theme="dark"] .bg-light {
-        background-color: #374151 !important;
+        background-color: #1f2937 !important;
         color: var(--text-main) !important;
       }
       [data-theme="dark"] .text-dark {
@@ -87,6 +87,22 @@
       [data-theme="dark"] .list-group-item:hover {
         background-color: rgba(255, 255, 255, 0.05);
         color: #63b3ed;
+      }
+
+      /* --- NEW: Sidebar / Menu Bar Dark Mode Fixes --- */
+      [data-theme="dark"] .offcanvas {
+        background-color: var(--card-bg) !important;
+        color: var(--text-main) !important;
+      }
+      [data-theme="dark"] .offcanvas-header {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+      }
+      [data-theme="dark"] .offcanvas-title {
+        color: var(--text-main) !important;
+      }
+      [data-theme="dark"] .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
       }
 
       /* Navigation */
@@ -314,35 +330,31 @@
         <div class="list-group list-group-flush mt-2">
           <!-- Current Working Feature -->
           <a
-            href="#"
-            class="list-group-item list-group-item-action bg-primary text-white fw-bold py-3"
+            href="index.html"
+            class="list-group-item list-group-item-action py-3 text-muted"
           >
-            🏠 AI Upload & Analyze (Active)
+            🏠 AI Upload & Analyze
           </a>
 
-          <!-- Placeholders for your Phase 2 Features -->
           <a
-            href="#"
+            href="database.html"
             class="list-group-item list-group-item-action py-3 text-muted"
           >
             📚 Database & PYQs
-            <span class="badge bg-secondary float-end">Coming Soon</span>
           </a>
 
           <a
-            href="#"
+            href="quiz.html"
             class="list-group-item list-group-item-action py-3 text-muted"
           >
             ✍️ Dynamic Quizzes
-            <span class="badge bg-secondary float-end">Coming Soon</span>
           </a>
 
           <a
-            href="#"
+            href="search.html"
             class="list-group-item list-group-item-action py-3 text-muted"
           >
             🔍 University Search
-            <span class="badge bg-secondary float-end">Coming Soon</span>
           </a>
         </div>
 

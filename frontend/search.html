@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Search | AI Study Companion</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Body */
+        body { transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
+        .dark-mode { background-color: #121212 !important; color: #e0e0e0 !important; }
+
+        /* Cards and Text Inside Cards (Fixes Bugs 2 & 3) */
+        .dark-mode .card { background-color: #1e1e1e !important; border-color: #333 !important; }
+        .dark-mode .card-body,
+        .dark-mode .form-label, 
+        .dark-mode .card-title { color: #e0e0e0 !important; }
+        
+        /* Sidebar Menu Fixes (Fixes Bug 1) */
+        .dark-mode .offcanvas { background-color: #1e1e1e !important; border-right: 1px solid #333; }
+        .dark-mode .offcanvas-header.bg-light,
+        .dark-mode .mt-auto.bg-light { background-color: #1e1e1e !important; border-color: #333 !important; }
+        .dark-mode .offcanvas-title { color: #fff !important; }
+        .dark-mode .list-group-item:not(.bg-primary) { background-color: #1e1e1e !important; color: #e0e0e0 !important; border-color: #333 !important; }
+        .dark-mode .list-group-item:not(.bg-primary):hover { background-color: #2a2a2a !important; color: #fff !important; }
+        .dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); } /* Makes the 'X' button white */
+
+        /* Inputs & Selects */
+        .dark-mode .form-control, 
+        .dark-mode .form-select { background-color: #2a2a2a !important; color: #fff !important; border-color: #444 !important; }
+        .dark-mode .form-control::placeholder { color: #888 !important; }
+        .dark-mode .text-muted { color: #adb5bd !important; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- ========================================== -->
+    <!-- 1. NAVBAR                                  -->
+    <!-- ========================================== -->
+    <nav class="navbar py-3 sticky-top bg-primary shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            
+            <div class="d-flex align-items-center">
+                <button class="btn shadow-none p-0 me-3 text-white fs-4 border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                    ☰
+                </button>
+                <span class="navbar-brand mb-0 h4 fw-bold text-white">🎓 AI Study Companion</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-light btn-sm fw-bold" onclick="toggleTheme()" id="themeSwitcher">🌙 Dark Mode</button>
+                <span id="userDisplay" class="badge bg-white text-primary d-none"></span>
+                <button onclick="handleLogout()" class="btn btn-sm btn-danger px-3 rounded-pill d-none" id="logoutBtn">Logout</button>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- 2. THE SLIDING SIDEBAR (OFFCANVAS)         -->
+    <!-- ========================================== -->
+    <div class="offcanvas offcanvas-start shadow" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+        
+        <div class="offcanvas-header bg-light border-bottom">
+            <h5 class="offcanvas-title fw-bold text-primary" id="sidebarMenuLabel">Menu</h5>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body d-flex flex-column p-0">
+            <div class="list-group list-group-flush mt-2">
+                
+                <a href="index.html" class="list-group-item list-group-item-action py-3 text-muted">
+                    🏠 AI Upload & Analyze
+                </a>
+                
+                <a href="database.html" class="list-group-item list-group-item-action py-3 text-muted">
+                    📚 Database & PYQs
+                </a>
+                
+                <a href="quiz.html" class="list-group-item list-group-item-action py-3 text-muted">
+                    ✍️ Dynamic Quizzes
+                </a>
+                
+                <!-- Notice how search.html is now ACTIVE (Blue) -->
+                <a href="search.html" class="list-group-item list-group-item-action bg-primary text-white fw-bold py-3">
+                    🔍 University Search 
+                </a>
+            </div>
+            
+            <div class="mt-auto p-3 border-top bg-light">
+                <p class="small text-muted mb-0">Version 2.0 In Progress 🚀</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. UNIVERSITY SEARCH MAIN CONTENT          -->
+    <!-- ========================================== -->
+    <div class="container mt-4 mb-5">
+        <h2 class="fw-bold text-primary mb-4">🔍 University Search</h2>
+
+        <!-- Search Bar & Filters -->
+        <div class="card shadow-sm border-0 mb-4 border-top border-4 border-primary">
+            <div class="card-body p-4">
+                <div class="input-group input-group-lg mb-3">
+                    <input type="text" id="searchInput" class="form-control shadow-none" placeholder="Search by university name or city...">
+                    <button class="btn btn-primary fw-bold px-4 shadow-none" onclick="searchUniversities()">Search</button>
+                </div>
+                
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <select id="programFilter" class="form-select shadow-none">
+                            <option value="All">All Programs</option>
+                            <option value="BCA">BCA / Computer Science</option>
+                            <option value="BTech">B.Tech / Engineering</option>
+                            <option value="BSc">B.Sc / Sciences</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="typeFilter" class="form-select shadow-none">
+                            <option value="All">Institution Type</option>
+                            <option value="Public">Public / Government</option>
+                            <option value="Private">Private</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="searchResults" class="row g-4">
+            <!-- Default Empty State -->
+            <div class="col-12 text-center text-muted mt-4">
+                <h1 class="display-4 mb-3">🏫</h1>
+                <p class="fs-5">Enter a university name or select filters to discover campus details, courses, and admission info.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. SCRIPTS                                 -->
+    <!-- ========================================== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- Dark Mode Toggle Function ---
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('themeSwitcher');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.innerText = '☀️ Light Mode';
+                btn.classList.replace('btn-outline-light', 'btn-light');
+                btn.classList.replace('text-white', 'text-dark');
+            } else {
+                btn.innerText = '🌙 Dark Mode';
+                btn.classList.replace('btn-light', 'btn-outline-light');
+                btn.classList.replace('text-dark', 'text-white');
+            }
+        }
+
+        // --- Fake Search Logic (Until backend API is connected) ---
+        function searchUniversities() {
+            const query = document.getElementById('searchInput').value;
+            const resultsArea = document.getElementById('searchResults');
+            
+            // Show loading spinner
+            resultsArea.innerHTML = `
+                <div class="col-12 text-center mt-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 fw-bold text-muted">Searching institutions...</p>
+                </div>`;
+
+            // Simulate network delay of 1.5 seconds
+            setTimeout(() => {
+                resultsArea.innerHTML = ""; // Clear loader
+
+                // Dummy Data representing what your backend will eventually send
+                const dummyUniversities = [
+                    {
+                        name: "National Institute of Technology (NIT)",
+                        location: "Bengaluru Area",
+                        type: "Public",
+                        topCourses: "B.Tech, BCA, M.Tech",
+                        rating: "⭐⭐⭐⭐⭐"
+                    },
+                    {
+                        name: "TechZenith Global University",
+                        location: "New Delhi",
+                        type: "Private",
+                        topCourses: "BCA, B.Sc Computer Science",
+                        rating: "⭐⭐⭐⭐"
+                    },
+                    {
+                        name: "State Arts & Science College",
+                        location: "Mumbai",
+                        type: "Public",
+                        topCourses: "B.Com, B.Sc, BA",
+                        rating: "⭐⭐⭐⭐"
+                    }
+                ];
+
+                // Render the dummy cards
+                dummyUniversities.forEach(uni => {
+                    let badgeColor = uni.type === "Public" ? "bg-success" : "bg-warning text-dark";
+
+                    resultsArea.innerHTML += `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card shadow-sm h-100 border-0">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge ${badgeColor}">${uni.type}</span>
+                                        <small class="text-muted">${uni.rating}</small>
+                                    </div>
+                                    <h5 class="card-title fw-bold text-primary mb-1">${uni.name}</h5>
+                                    <p class="text-muted small mb-3">📍 ${uni.location}</p>
+                                    
+                                    <p class="card-text small mb-1 fw-bold">Top Programs:</p>
+                                    <p class="card-text text-muted small">${uni.topCourses}</p>
+                                </div>
+                                <div class="card-footer bg-transparent border-top-0 pt-0">
+                                    <button class="btn btn-outline-primary btn-sm w-100 fw-bold">View Campus Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
